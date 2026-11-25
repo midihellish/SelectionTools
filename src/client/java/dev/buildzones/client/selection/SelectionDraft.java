@@ -7,13 +7,17 @@ import net.minecraft.util.math.BlockPos;
 /**
  * Rascunho em edição. Existe só enquanto o jogador define a região.
  *
- * O canto A (anchor) é fixo. O canto B (opposite) é o único que se move, e só
- * no eixo ativo. A direção de crescimento de cada eixo é guardada na primeira
- * expansão e continua valendo mesmo quando a dimensão volta ao mínimo.
+ * O canto A (anchor) é fixo. O canto B é o ponto da mira somado ao ajuste do scroll,
+ * por eixo: a mira move a caixa, e o scroll cresce ou diminui no eixo da câmera.
+ * A direção de crescimento de cada eixo é guardada na primeira expansão e continua valendo
+ * mesmo quando a dimensão volta ao mínimo.
  */
 public final class SelectionDraft {
     private final BlockPos anchor;
-    private BlockPos opposite;
+    private BlockPos aim;
+    private int minY = Integer.MIN_VALUE;
+    private int maxY = Integer.MAX_VALUE;
+    private final int[] scrollOffset = new int[3];
     private SelectionAxis activeAxis;
     private final EnumMap<SelectionAxis, Integer> growthSigns = new EnumMap<>(SelectionAxis.class);
     private double scrollAccumulator;
@@ -26,17 +30,24 @@ public final class SelectionDraft {
         return anchor;
     }
 
-    /** Canto B, ou o próprio A enquanto o segundo canto não foi marcado. */
+    /** Canto B: mira mais ajuste do scroll, com Y dentro do mundo. O próprio A antes da primeira mira. */
     public BlockPos opposite() {
-        return opposite == null ? anchor : opposite;
+        if (aim == null) {
+            return anchor;
+        }
+        int y = Math.max(minY, Math.min(maxY, aim.getY() + scrollOffset[1]));
+        return new BlockPos(aim.getX() + scrollOffset[0], y, aim.getZ() + scrollOffset[2]);
     }
 
-    public boolean hasOpposite() {
-        return opposite != null;
+    /** Define o ponto da mira e os limites de Y do mundo. Não mexe no ajuste do scroll. */
+    public void setOpposite(BlockPos position, int minY, int maxY) {
+        this.aim = position.toImmutable();
+        this.minY = minY;
+        this.maxY = maxY;
     }
 
     public void setOpposite(BlockPos position) {
-        this.opposite = position.toImmutable();
+        setOpposite(position, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     public SelectionAxis activeAxis() {
@@ -63,7 +74,8 @@ public final class SelectionDraft {
     }
 
     /**
-     * Ajusta o canto B no eixo, mantendo o A fixo.
+     * Ajusta o canto B no eixo, em blocos, a partir da dimensão atual, mantendo o A fixo.
+     * O ajuste fica guardado como deslocamento sobre a mira, então continua valendo quando a mira se move.
      *
      * @param lookSign  sinal da câmera no eixo; usado só quando A e B coincidem e
      *                  a direção ainda não foi guardada
@@ -72,11 +84,11 @@ public final class SelectionDraft {
      * @return true se o canto B mudou
      */
     public boolean resize(SelectionAxis axis, int steps, int lookSign, int minCoord, int maxCoord) {
-        if (!hasOpposite() || steps == 0) {
+        if (aim == null || steps == 0) {
             return false;
         }
         int a = coord(anchor, axis);
-        int o = coord(opposite, axis);
+        int o = coord(opposite(), axis);
         int sign = growthSign(axis, a, o, lookSign);
 
         int currentDim = Math.abs(o - a) + 1;
@@ -84,10 +96,11 @@ public final class SelectionDraft {
         int target = a + sign * (newDim - 1);
         // O limite do mundo pode cortar a expansão; como A está dentro dele, o corte nunca cruza A.
         target = Math.max(minCoord, Math.min(maxCoord, target));
-        if (target == o) {
+        int offset = target - coord(aim, axis);
+        if (offset == scrollOffset[axis.ordinal()] || target == o) {
             return false;
         }
-        opposite = withCoord(opposite, axis, target);
+        scrollOffset[axis.ordinal()] = offset;
         return true;
     }
 
@@ -111,14 +124,6 @@ public final class SelectionDraft {
             case X -> pos.getX();
             case Y -> pos.getY();
             case Z -> pos.getZ();
-        };
-    }
-
-    private static BlockPos withCoord(BlockPos pos, SelectionAxis axis, int value) {
-        return switch (axis) {
-            case X -> new BlockPos(value, pos.getY(), pos.getZ());
-            case Y -> new BlockPos(pos.getX(), value, pos.getZ());
-            case Z -> new BlockPos(pos.getX(), pos.getY(), value);
         };
     }
 }

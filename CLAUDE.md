@@ -11,11 +11,11 @@ export JAVA_HOME=$HOME/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-- Build completo (compila os dois source sets, roda testes, gera `build/libs/selection-tools-0.2.0.jar` e o `-sources.jar`): `./gradlew build`
+- Build completo (compila os dois source sets, roda testes, gera `build/libs/selection-tools-0.3.0.jar` e o `-sources.jar`): `./gradlew build`
 - Compilar sem testes: `./gradlew compileJava compileClientJava`
 - Todos os testes: `./gradlew test`
-- Uma classe: `./gradlew test --tests 'dev.buildzones.client.axis.AxisResolverTest'`
-- Um método: `./gradlew test --tests 'dev.buildzones.client.selection.SelectionDraftTest.scrollUpGrowsAndScrollDownShrinks'`
+- Uma classe: `./gradlew test --tests 'dev.buildzones.client.radial.RadialLayoutTest'`
+- Um método: `./gradlew test --tests 'dev.buildzones.client.selection.SelectionDraftTest.boundsFollowTheAimedCorner'`
 - Cliente de desenvolvimento: `./gradlew runClient`. Abre uma janela de jogo no `DISPLAY`. Gera `run/` e `logs/` na raiz, que são artefatos de teste.
 - Não há task de lint nem checkstyle configurados.
 
@@ -31,10 +31,10 @@ Mod Fabric 1.20.1 com Yarn 1.20.1+build.10. Versões em `gradle.properties`.
 - `build.gradle` põe as classes de `main` e `client` no classpath dos testes. Por isso os testes de geometria funcionam sem bootstrap do Minecraft.
 
 **Fluxo de entrada (cliente):**
-Callbacks Fabric (`MouseInputHandler`: AttackBlock, UseBlock, UseItem) e dois mixins (`MouseScrollMixin` em `Mouse.onMouseScroll`, `KeyboardInputMixin` em `Keyboard.onKey`) → `SelectionInputController` → `SelectionStateMachine` → `SelectionDraft` / `SelectionManager` → `SelectionStorage`.
+Callback Fabric (`MouseInputHandler`: UseBlock), mixins `MouseButtonMixin` (cliques da seleção) e `KeyboardInputMixin` (tecla de modificador em `Keyboard.onKey`) → `SelectionInputController` → `SelectionStateMachine` → `SelectionDraft` / `SelectionManager` → `SelectionStorage`. A tecla de modificador é um `KeyBinding` (`ModKeys`), configurável em Controles.
 - `SelectionInputController` é o único lugar com a ordem de prioridade das entradas. Os callbacks são registrados no cliente, mas também disparam no servidor integrado do singleplayer, por isso checam `world.isClient`.
-- `SelectionStateMachine` é a única autoridade sobre IDLE / WAITING_SECOND_CORNER / PREVIEW. Não conhece teclado nem render.
-- Scroll só é consumido em PREVIEW; ESC só é consumido com rascunho. Fora disso o vanilla segue.
+- `SelectionStateMachine` é a única autoridade sobre IDLE / ARMED / WAITING_SECOND_CORNER. Não conhece teclado nem render.
+- Toque em ALT (apertar e soltar, sem outra tecla no meio): abre o `RadialMenuScreen` ou para a ação em curso. `ModifierKeyState` consulta o GLFW direto. ESC só é consumido com escolha ou rascunho. Fora disso o vanilla segue. A roda do mouse nunca é consumida.
 
 **Contexto (perfil + dimensão):** o `tick` do controller detecta troca de `ClientWorld` e chama `manager.setContext(...)`. O perfil é um hash SHA-256 truncado do caminho do save (singleplayer) ou do endereço do servidor (`WorldProfileKey`). Persistência em `config/buildzones/worlds/<perfil>/<dimensão>.json`, com escrita em `.tmp` e troca atômica.
 
@@ -52,16 +52,17 @@ Callbacks Fabric (`MouseInputHandler`: AttackBlock, UseBlock, UseItem) e dois mi
 - Animações usam `Util.getMeasuringTimeMs()`. A caixa da prévia (`AnimatedBounds`) converge por `dt`, não por frame. Pulso e fantasmas ficam em `AnimationController`.
 
 **Estado e dados:**
-- `SelectionDraft`: A fixo, B move só no eixo ativo. A direção de crescimento de cada eixo é guardada na primeira expansão e continua valendo ao voltar ao mínimo.
+- `SelectionDraft`: A fixo, B segue a mira com Y limitado ao mundo. Não há mais scroll nem eixo.
 - `SelectionManager`: lista ordenada das regiões. A ordem é o histórico, então undo remove o último. Cada mutação grava no disco. Não há estado global compartilhado entre mundos.
 - Valores de comportamento em `BuildZonesConfig`, cores e alphas em `RenderStyle`.
-- Textos em `src/client/resources/assets/buildzones/lang/` (`buildzones.hud.*` e `buildzones.replace.*`).
+- Textos em `src/client/resources/assets/buildzones/lang/` (`buildzones.hud.*`, `buildzones.radial.*`, `buildzones.area.*` e `buildzones.replace.*`).
 
 ## Armadilhas
 
 - Os alvos dos mixins usam nomes Yarn. Para conferir assinaturas, use `javap -p` no jar `minecraft-clientOnly-*1.20.1*.jar` dentro de `.gradle/loom-cache`.
-- `AttackBlockCallback` só dispara com o cursor sobre um bloco. ALT + clique no ar não tem efeito nem aviso.
-- O único teste de render é o de geometria (contagem de vértices). Nada testa visual. Validação visual é manual, em jogo, com ALT + clique em dois blocos.
+- `AttackBlockCallback` só dispara com o cursor sobre um bloco; por isso os cliques da seleção vêm de `MouseButtonMixin`, que também funciona no ar.
+- `KeyBinding` do 1.20.1 guarda uma só tecla, sem combinação. O modificador é uma tecla; os atalhos checam se ela está segurada.
+- O único teste de render é o de geometria (contagem de vértices). Nada testa visual. Menu radial e painel também: validação é manual, em jogo (ver `docs/TEST_PLAN.md`).
 - O jar é para instância Fabric 1.20.1 com Fabric API 0.92.12+1.20.1. Não serve para instâncias NeoForge.
 
 ## Documentação existente

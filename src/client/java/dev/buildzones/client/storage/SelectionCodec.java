@@ -2,6 +2,7 @@ package dev.buildzones.client.storage;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.buildzones.client.area.AreaShape;
 import dev.buildzones.client.selection.SelectionRegion;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public final class SelectionCodec {
             entry.color = toHex(region.color());
             entry.visible = region.visible();
             entry.name = region.name();
+            entry.shape = region.shape().name();
             doc.regions.add(entry);
         }
         return doc;
@@ -59,12 +61,25 @@ public final class SelectionCodec {
                         dimension,
                         parseHex(entry.color, 0x53DDF2),
                         entry.name == null ? "Área" : entry.name,
-                        entry.visible));
+                        entry.visible,
+                        parseShape(entry.shape)));
             } catch (IllegalArgumentException e) {
                 // UUID inválido: descarta só esta entrada.
             }
         }
         return regions;
+    }
+
+    /** Forma desconhecida ou ausente (arquivo antigo) vira volume inteiro. */
+    private static AreaShape parseShape(String name) {
+        if (name != null) {
+            for (AreaShape shape : AreaShape.values()) {
+                if (shape.name().equals(name)) {
+                    return shape;
+                }
+            }
+        }
+        return AreaShape.FILL;
     }
 
     public static String toHex(int rgb) {

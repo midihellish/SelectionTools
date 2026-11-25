@@ -1,6 +1,7 @@
 package dev.buildzones.area;
 
 import dev.buildzones.network.AreaOpRequest;
+import dev.buildzones.network.AreaBreakRequest;
 import dev.buildzones.network.AreaPlaceRequest;
 import dev.buildzones.network.AreaResultPacket;
 import dev.buildzones.network.SyncRegionPacket;
@@ -99,7 +100,7 @@ public final class AreaOperationService {
     /** Atualiza ou remove a região ativa do jogador, depois de validar os campos. */
     public static void sync(ServerPlayerEntity player, SyncRegionPacket packet) {
         UUID uuid = player.getUuid();
-        if (!packet.present()) {
+        if (packet.regions().isEmpty()) {
             REGIONS.remove(uuid);
             return;
         }
@@ -110,11 +111,13 @@ public final class AreaOperationService {
                 target = resolved;
             }
         }
-        boolean accepted = REGIONS.put(uuid, packet.id(), packet.dimension(),
-                AreaBox.between(packet.anchor(), packet.opposite()), target);
-        if (!accepted) {
+        List<ServerRegionRegistry.ActiveRegion> regions = packet.regions().stream()
+                .map(e -> new ServerRegionRegistry.ActiveRegion(e.id(), e.dimension(),
+                        AreaBox.between(e.anchor(), e.opposite())))
+                .toList();
+        if (!REGIONS.put(uuid, regions, target)) {
             REGIONS.remove(uuid);
-            LOGGER.debug("Região recusada de {}: dimensão acima do limite", player.getName().getString());
+            LOGGER.debug("Áreas recusadas de {}: fora dos limites", player.getName().getString());
         }
     }
 
@@ -126,8 +129,8 @@ public final class AreaOperationService {
             return requestUndo(player);
         }
         UUID uuid = player.getUuid();
-        Optional<ServerRegionRegistry.ActiveRegion> region = REGIONS.get(uuid);
-        boolean known = region.isPresent() && region.get().id().equals(request.regionId());
+        Optional<ServerRegionRegistry.ActiveRegion> region = REGIONS.find(uuid, request.regionId());
+        boolean known = region.isPresent();
         boolean dimensionMatches = known && region.get().dimension().equals(dimensionOf(player.getWorld()));
         long volume = known ? region.get().box().volume() : 0L;
 
@@ -246,13 +249,13 @@ public final class AreaOperationService {
         }
         LAST_PLACE.put(uuid, now);
 
-        Optional<ServerRegionRegistry.ActiveRegion> region = REGIONS.get(uuid);
-        boolean known = region.isPresent() && region.get().id().equals(request.regionId());
+        Optional<ServerRegionRegistry.ActiveRegion> region = REGIONS.find(uuid, request.regionId());
+        boolean known = region.isPresent();
         World world = player.getWorld();
         boolean dimensionMatches = known && region.get().dimension().equals(dimensionOf(world));
         BlockPos pos = request.pos();
         boolean insideRegion = dimensionMatches && region.get().box().contains(pos);
-        BlockState target = dimensionMatches ? region.get().target() : null;
+        BlockState target = dimensionMatches ? REGIONS.target(uuid).orElse(null) : null;
         ItemStack stack = player.getStackInHand(request.hand());
         boolean heldMatches = target != null && !stack.isEmpty() && stack.isOf(target.getBlock().asItem());
         Vec3d center = Vec3d.ofCenter(pos);
@@ -261,7 +264,7 @@ public final class AreaOperationService {
         AreaOperationValidator.PlaceFacts facts = new AreaOperationValidator.PlaceFacts(
                 true, known, dimensionMatches, insideRegion, target != null, heldMatches,
                 allowedToBuild(player), world.isInBuildLimit(pos), isChunkLoaded(world, pos),
-                player.squaredDistanceTo(center), reachSq);
+                player.getEyePos().squaredDistanceTo(center), reachSq);
         Optional<AreaResult> refusal = AreaOperationValidator.checkPlacement(facts);
         if (refusal.isPresent()) {
             return refusal.get();
@@ -290,6 +293,54 @@ public final class AreaOperationService {
         }
         ReplaceBlockService.finishPlacement(player, serverWorld, pos, target, stack);
         return AreaResult.PLACED;
+    }
+
+    // ---- Quebra do pincel ----
+
+    /**
+     * Quebra um bloco dentro de uma área conhecida, como se o jogador o tivesse minerado: drops, durabilidade
+     * da ferramenta e proteção seguem o jogo. Instantâneo, sem tempo de mineração. Ar já é o resultado pedido.
+     */
+    public static AreaResult breakBlock(ServerPlayerEntity player, AreaBreakRequest request) {
+        UUID uuid = player.getUuid();
+        long now = Util.getMeasuringTimeMs();
+        Long last = LAST_PLACE.get(uuid);
+        boolean rateOk = AreaOperationValidator.placeRateOk(last == null ? -1L : last, now);
+        if (!rateOk) {
+            return AreaResult.RATE_LIMITED;
+        }
+        LAST_PLACE.put(uuid, now);
+
+        Optional<ServerRegionRegistry.ActiveRegion> region = REGIONS.find(uuid, request.regionId());
+        boolean known = region.isPresent();
+        World world = player.getWorld();
+        boolean dimensionMatches = known && region.get().dimension().equals(dimensionOf(world));
+        BlockPos pos = request.pos();
+        boolean insideRegion = dimensionMatches && region.get().box().contains(pos);
+        Vec3d center = Vec3d.ofCenter(pos);
+        double reachSq = ReplaceBlockValidator.REACH * ReplaceBlockValidator.REACH;
+
+        AreaOperationValidator.PlaceFacts facts = new AreaOperationValidator.PlaceFacts(
+                true, known, dimensionMatches, insideRegion, true, true,
+                allowedToBuild(player), world.isInBuildLimit(pos), isChunkLoaded(world, pos),
+                player.getEyePos().squaredDistanceTo(center), reachSq);
+        Optional<AreaResult> refusal = AreaOperationValidator.checkBreak(facts);
+        if (refusal.isPresent()) {
+            return refusal.get();
+        }
+
+        ServerWorld serverWorld = player.getServerWorld();
+        BlockState before = serverWorld.getBlockState(pos);
+        if (before.isAir()) {
+            return AreaResult.BROKEN;
+        }
+        if (ReplacementPolicy.evaluateAreaCell(serverWorld, pos, before).isPresent()) {
+            return AreaResult.PROTECTED;
+        }
+        if (!serverWorld.canPlayerModifyAt(player, pos)) {
+            return AreaResult.NO_PERMISSION;
+        }
+        return player.interactionManager.tryBreakBlock(pos) ? AreaResult.BROKEN : AreaResult.PROTECTED;
     }
 
     // ---- Tick e fatias ----

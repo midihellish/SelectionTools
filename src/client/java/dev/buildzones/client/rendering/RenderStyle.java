@@ -7,8 +7,8 @@ package dev.buildzones.client.rendering;
 public final class RenderStyle {
     /** Região confirmada: ciano. */
     public static final int REGION_RGB = 0x53DDF2;
-    /** Região em prévia: turquesa claro. */
-    public static final int PREVIEW_RGB = 0x8FFFF0;
+    /** Seleção em prévia: branco. */
+    public static final int PREVIEW_RGB = 0xFFFFFF;
     /** Eixo ativo: âmbar suave, para não se confundir com as caixas. */
     public static final int AXIS_RGB = 0xFFC66D;
     /** Marcador do canto A. */
@@ -22,7 +22,7 @@ public final class RenderStyle {
 
     public static final int FILL_ALPHA = 34;
     public static final int EDGE_ALPHA = 210;
-    public static final int PREVIEW_FILL_ALPHA = 58;
+    public static final int PREVIEW_FILL_ALPHA = 22;
     public static final int PREVIEW_EDGE_ALPHA = 255;
     public static final int AREA_GHOST_FILL_ALPHA = 60;
     public static final int AREA_GHOST_EDGE_ALPHA = 170;

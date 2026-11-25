@@ -43,6 +43,16 @@ class SelectionCodecTest {
     }
 
     @Test
+    void shapeSurvivesRoundTripAndDefaultsToFill() {
+        SelectionRegion hollow = new SelectionRegion(UUID.randomUUID(), new BlockPos(0, 0, 0), new BlockPos(4, 4, 4),
+                OVERWORLD, 0x53DDF2, "Oca", true, dev.buildzones.client.area.AreaShape.HOLLOW);
+        SelectionStorage storage = new SelectionStorage(tempDir);
+        storage.save("sp-shape", "Mundo", OVERWORLD, List.of(hollow), 1L);
+        assertEquals(dev.buildzones.client.area.AreaShape.HOLLOW, storage.load("sp-shape", OVERWORLD).get(0).shape());
+        assertEquals(dev.buildzones.client.area.AreaShape.FILL, region("x", new BlockPos(0, 0, 0), new BlockPos(1, 1, 1)).shape());
+    }
+
+    @Test
     void missingFileGivesEmptyList() {
         SelectionStorage storage = new SelectionStorage(tempDir);
         assertTrue(storage.load("nope", OVERWORLD).isEmpty());

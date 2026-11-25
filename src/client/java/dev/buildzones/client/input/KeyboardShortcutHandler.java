@@ -6,25 +6,24 @@ import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Atalhos do BuildZones e o ESC para cancelar a prévia.
- * Só age no momento do pressionamento e sem tela aberta.
- * Retorna true apenas quando um atalho do BuildZones foi executado,
- * para que o mixin cancele o evento e nenhuma função vanilla rode junto.
+ * Teclado do BuildZones, sem tela aberta.
  *
- * Mapa: ALT+Z desfaz região, CTRL+ALT+Z desfaz blocos, ALT+F limpa regiões,
- * ALT+B liga/desliga o modo área, ALT+C limpa a área e ALT+V preenche a área.
+ * - Tocar e soltar a tecla de modificador: abre o menu radial, ou para a ação em curso.
+ * - Modificador + tecla: atalhos (ALT+Z desfaz região, CTRL+ALT+Z desfaz blocos, ALT+F limpa regiões,
+ *   ALT+C limpa a área e ALT+V preenche a área).
+ * - ESC: cancela a escolha ou o rascunho, se houver.
+ *
+ * Retorna true só quando um atalho foi executado, para o mixin cancelar o evento.
  */
 public final class KeyboardShortcutHandler {
 
     private KeyboardShortcutHandler() {
     }
 
-    public static boolean handle(int action, int key, int modifiers) {
-        if (action != GLFW.GLFW_PRESS) {
-            return false;
-        }
+    public static boolean handle(int action, int key, int scancode, int modifiers) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.currentScreen != null) {
+            // Telas (inclusive o menu radial) tratam as próprias teclas.
             return false;
         }
         var controller = BuildZonesClient.controller();
@@ -32,29 +31,35 @@ public final class KeyboardShortcutHandler {
             return false;
         }
 
+        boolean modifierKey = ModifierKeyState.matches(key, scancode);
+        if (action == GLFW.GLFW_RELEASE) {
+            if (modifierKey) {
+                controller.modifierReleased();
+            }
+            return false;
+        }
+        if (action != GLFW.GLFW_PRESS) {
+            return false;
+        }
+        if (modifierKey) {
+            controller.modifierPressed();
+            return false;
+        }
+        controller.otherInputPressed();
+
         if (key == GLFW.GLFW_KEY_ESCAPE && controller.isDrafting()) {
             return controller.cancelDraft();
         }
-        boolean alt = (modifiers & GLFW.GLFW_MOD_ALT) != 0;
-        if (!alt) {
+        if (!ModifierKeyState.isHeld()) {
             return false;
         }
         boolean ctrl = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
-        if (key == GLFW.GLFW_KEY_Z) {
-            return ctrl ? controller.areaUndoBlocks() : controller.undo();
-        }
-        if (key == GLFW.GLFW_KEY_F) {
-            return controller.clear();
-        }
-        if (key == GLFW.GLFW_KEY_B) {
-            return controller.toggleAreaMode();
-        }
-        if (key == GLFW.GLFW_KEY_C) {
-            return controller.areaBulk(AreaOperation.CLEAR);
-        }
-        if (key == GLFW.GLFW_KEY_V) {
-            return controller.areaBulk(AreaOperation.FILL);
-        }
-        return false;
+        return switch (key) {
+            case GLFW.GLFW_KEY_Z -> ctrl ? controller.areaUndoBlocks() : controller.undo();
+            case GLFW.GLFW_KEY_F -> controller.clear();
+            case GLFW.GLFW_KEY_C -> controller.areaBulk(AreaOperation.CLEAR);
+            case GLFW.GLFW_KEY_V -> controller.areaBulk(AreaOperation.FILL);
+            default -> false;
+        };
     }
 }

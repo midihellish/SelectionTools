@@ -73,5 +73,17 @@ public final class BuildZonesNetworking {
             server.execute(() -> AreaOperationService.reply(player,
                     AreaResultPacket.of(AreaOperationService.place(player, request))));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(ModIds.AREA_BREAK_REQUEST, (server, player, handler, buf, responseSender) -> {
+            AreaBreakRequest request;
+            try {
+                request = AreaBreakRequest.read(buf);
+            } catch (RuntimeException e) {
+                LOGGER.warn("Pedido de quebra malformado de {}", player.getName().getString());
+                return;
+            }
+            server.execute(() -> AreaOperationService.reply(player,
+                    AreaResultPacket.of(AreaOperationService.breakBlock(player, request))));
+        });
     }
 }

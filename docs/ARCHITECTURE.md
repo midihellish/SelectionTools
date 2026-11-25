@@ -4,16 +4,17 @@
 
 1. **Comum (`src/main`)**: entrypoint `BuildZones`, canais de rede e o serviço de substituição. Roda no servidor dedicado sem classes de cliente.
 2. **Cliente (`src/client`)**: entrada, máquina de estados, armazenamento, renderização, HUD e animações.
-3. **Mixins (`src/client/.../mixin`)**: dois, ambos client-only. `MouseScrollMixin` e `KeyboardInputMixin`.
+3. **Mixins (`src/client/.../mixin`)**: dois, client-only. `MouseButtonMixin` (cliques da seleção) e `KeyboardInputMixin` (tecla de modificador e atalhos).
 
 ## Fluxo da seleção
 
 ```
 Mouse / teclado
-   -> callbacks Fabric (AttackBlock, UseBlock, UseItem) e mixins (onMouseScroll, onKey)
+   -> callback Fabric (UseBlock) e mixins (onMouseButton, onKey); tecla de modificador via KeyBinding
    -> SelectionInputController   (prioridade de entradas, um só lugar)
-   -> SelectionStateMachine      (única autoridade sobre IDLE / WAITING / PREVIEW)
-        -> SelectionDraft        (rascunho: A fixo, B move no eixo ativo)
+        -> RadialMenuScreen      (tela do menu: escolhe uma RadialOption)
+   -> SelectionStateMachine      (única autoridade sobre IDLE / ARMED / WAITING_SECOND_CORNER)
+        -> SelectionDraft        (rascunho: A fixo, B = ponto da mira)
         -> SelectionManager      (regiões confirmadas, ordem = histórico)
              -> SelectionStorage (JSON por perfil de mundo e dimensão)
    -> SelectionWorldRenderer     (lê estado, desenha; não altera dados)
@@ -34,11 +35,12 @@ O cliente nunca altera blocos. Sem o mod no servidor, `ClientPlayNetworking.canS
 ## Área (modo área e operações em massa)
 
 ```
-Cliente: ALT + B / ALT + C / ALT + V / CTRL + ALT + Z / RMB (segurado)
+Cliente: escolha no menu radial (Oco / Arestas / Preencher marcam área em 3 cliques; Construir liga o pincel)
+         MOD + C / MOD + V / CTRL + MOD + Z / RMB (segurado)
    -> SelectionInputController  (prioridade; delega ao AreaModeController)
-   -> AreaModeController        (alvo, fantasmas, contagem, confirmação, repetição)
-        -> SurvivalBrushPlanner (puro: quais células são fantasma, raio do olhar)
-        -> sync_region / area_op_request / area_place_request
+   -> AreaModeController        (alvo, mira vanilla, colocar e quebrar repetidos, contagem, confirmação)
+        -> AreaShape            (puro: célula pertence ao volume, à casca ou às arestas)
+        -> sync_region / area_op_request / area_place_request / area_break_request
 Servidor: BuildZonesNetworking -> server.execute
         -> ServerRegionRegistry  (região ativa por jogador, validada na entrada)
         -> AreaOperationValidator (puro: ordem das recusas)
@@ -51,7 +53,7 @@ Resultado: area_result -> SelectionInputController.onAreaResult -> SelectionHud
 - O cliente nunca altera blocos. Ele lê o mundo para desenhar e contar, e manda pedidos.
 - O servidor só aceita o que bate com a região que ele guardou. Divergência responde `REGION_UNKNOWN` e o cliente reenvia a região ativa.
 - Um trabalho em massa por jogador. Cada tick processa até 4096 células, com `NOTIFY_LISTENERS` e sem drops.
-- Regras puras (`AreaBox`, `AreaOperationValidator`, `AreaUndoBuffer`, `AreaJobRunner`, `SurvivalBrushPlanner`) não precisam de bootstrap e têm testes.
+- Regras puras (`AreaBox`, `AreaOperationValidator`, `AreaUndoBuffer`, `AreaJobRunner`) não precisam de bootstrap e têm testes.
 - Limites compartilhados em `AreaLimits` (common). `BuildZonesConfig` só guarda valores de comportamento do cliente.
 
 ## Separação de responsabilidades
@@ -59,8 +61,10 @@ Resultado: area_result -> SelectionInputController.onAreaResult -> SelectionHud
 | Classe | Papel | Não faz |
 |---|---|---|
 | `SelectionBounds` | Min/max, dimensões, volume em `long`, caixa de render | Input, render |
-| `SelectionDraft` | Rascunho, direção de crescimento, acumulador de scroll | Persistência |
-| `AxisResolver` | Eixo dominante com histerese | Qualquer outra coisa |
+| `SelectionDraft` | Rascunho: canto A fixo, canto B na mira | Persistência |
+| `RadialLayout` | Geometria pura do menu (qual fatia está sob o ponto) | Input, render |
+| `RadialMenuScreen` | Desenho e escolha do menu radial | Alterar estado |
+| `AreaShape` | Forma do pincel (volume, casca, arestas) | Render |
 | `SelectionStateMachine` | Transições de estado | Teclado, render |
 | `SelectionManager` | Coleção ordenada, undo, clear, gravação | Input |
 | `SelectionStorage` | Leitura e gravação atômica | Regras de seleção |

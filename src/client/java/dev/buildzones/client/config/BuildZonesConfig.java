@@ -19,26 +19,26 @@ public final class BuildZonesConfig {
     /** Distância máxima de renderização das regiões, em blocos. */
     public static final double RENDER_DISTANCE = 192.0;
 
-    /** Janela para ignorar o mesmo clique repetido pelo vanilla enquanto o botão está segurado. */
-    public static final long ATTACK_DEBOUNCE_MS = 120L;
-
     /** Intervalo mínimo entre pedidos de substituição do botão direito segurado. */
     public static final long REPLACE_COOLDOWN_MS = 250L;
 
     /** Tempo de exibição de um toast do HUD. */
     public static final long TOAST_DURATION_MS = 2400L;
 
-    /** Intervalo entre colocações do pincel de área enquanto o botão direito estiver segurado. */
-    public static final long AREA_REPEAT_MS = 120L;
+    /** Intervalo mínimo entre ações do pincel com o botão segurado. Age em ticks de 50 ms: 90 vira uma ação a cada 2 ticks (10 por segundo). */
+    public static final long AREA_REPEAT_MS = 90L;
 
-    /** Raio horizontal, em blocos, dentro do qual os fantasmas do pincel aparecem. */
-    public static final int AREA_GHOST_RANGE = 8;
+    /**
+     * Desconto máximo da mira sobre a distância ao escolher onde colocar (0 a 1). Proximidade manda:
+     * com 0,35 a célula bem na mira "parece" até 35% mais perto, e fora da frente do olhar não ganha nada.
+     */
+    public static final double AREA_AIM_BONUS = 0.35;
 
-    /** Camada vertical, para cima e para baixo do jogador, em que os fantasmas aparecem. */
-    public static final int AREA_GHOST_LAYER = 2;
+    /** Tempo em que uma célula já pedida não é escolhida de novo, à espera da atualização do servidor. */
+    public static final long AREA_PENDING_MS = 300L;
 
-    /** Teto de fantasmas desenhados ao mesmo tempo, para não poluir nem pesar. */
-    public static final int AREA_GHOST_MAX = 1024;
+    /** Janela em que o mesmo bloco não é quebrado de novo, à espera da atualização do servidor. */
+    public static final long AREA_SAME_CELL_MS = 200L;
 
     /** Janela para a segunda pressão confirmar uma operação em massa. */
     public static final long AREA_CONFIRM_WINDOW_MS = 5000L;

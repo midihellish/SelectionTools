@@ -1,6 +1,9 @@
 package dev.buildzones.client.hud;
 
+import dev.buildzones.client.area.AreaModeController;
 import dev.buildzones.client.config.BuildZonesConfig;
+import dev.buildzones.client.input.ModifierKeyState;
+import dev.buildzones.client.radial.RadialOption;
 import dev.buildzones.client.selection.SelectionBounds;
 import dev.buildzones.client.selection.SelectionDraft;
 import dev.buildzones.client.selection.SelectionState;
@@ -10,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -18,7 +22,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 
 /**
- * Painel compacto durante a seleção e toasts discretos para ações e resultados.
+ * Painel persistente com o modo atual (escolha armada, região em andamento ou modo área) e toasts
+ * discretos para ações e resultados. Sempre mostra a tecla que cancela ou para o modo.
  * Não abre tela; respeita a opção de esconder o HUD do jogo.
  */
 public final class SelectionHud {
@@ -36,11 +41,22 @@ public final class SelectionHud {
     private record Toast(String text, long expiresAt) {
     }
 
+    private record Line(String text, int color) {
+    }
+
     private final SelectionStateMachine machine;
     private final Deque<Toast> toasts = new ArrayDeque<>();
+    private AreaModeController area;
+    private Supplier<RadialOption> pending = () -> null;
 
     public SelectionHud(SelectionStateMachine machine) {
         this.machine = machine;
+    }
+
+    /** Liga o HUD ao modo área e à escolha pendente. Feito depois da criação, por causa da ordem de montagem. */
+    public void bind(AreaModeController area, Supplier<RadialOption> pending) {
+        this.area = area;
+        this.pending = pending;
     }
 
     public void register() {
@@ -67,33 +83,10 @@ public final class SelectionHud {
     }
 
     private void renderPanel(DrawContext context, TextRenderer font) {
-        SelectionState state = machine.state();
-        if (state == SelectionState.IDLE) {
+        List<Line> lines = panelLines();
+        if (lines.isEmpty()) {
             return;
         }
-
-        List<Line> lines = new ArrayList<>();
-        if (state == SelectionState.WAITING_SECOND_CORNER) {
-            lines.add(new Line(Text.translatable("buildzones.hud.title").getString()
-                    + "  /  " + Text.translatable("buildzones.hud.waiting_title").getString(), TITLE_COLOR));
-            lines.add(new Line(Text.translatable("buildzones.hud.waiting_help").getString(), TEXT_COLOR));
-            lines.add(new Line(Text.translatable("buildzones.hud.cancel_help").getString(), HINT_COLOR));
-        } else {
-            SelectionDraft draft = machine.draft();
-            if (draft == null) {
-                return;
-            }
-            SelectionBounds b = draft.bounds();
-            lines.add(new Line(Text.translatable("buildzones.hud.title").getString()
-                    + "  /  " + Text.translatable("buildzones.hud.preview_title").getString(), TITLE_COLOR));
-            lines.add(new Line(String.format(Locale.ROOT, "%d × %d × %d   %s %s",
-                    b.sizeX(), b.sizeY(), b.sizeZ(),
-                    formatVolume(b.volume()),
-                    Text.translatable("buildzones.hud.blocks").getString()), TEXT_COLOR));
-            lines.add(new Line(axisText(draft), AXIS_COLOR));
-            lines.add(new Line(Text.translatable("buildzones.hud.preview_help").getString(), HINT_COLOR));
-        }
-
         int width = 0;
         for (Line line : lines) {
             width = Math.max(width, font.getWidth(line.text()));
@@ -108,7 +101,52 @@ public final class SelectionHud {
         }
     }
 
-    private String axisText(SelectionDraft draft) {
+    /** Linhas do painel para o estado atual. Vazio quando não há nada a mostrar. */
+    private List<Line> panelLines() {
+        String modifier = ModifierKeyState.name();
+        List<Line> lines = new ArrayList<>();
+        RadialOption option = pending.get();
+        SelectionState state = machine.state();
+
+        if (state == SelectionState.ARMED && option != null) {
+            lines.add(new Line(title(option), TITLE_COLOR));
+            lines.add(new Line(Text.translatable("buildzones.hud.panel_armed", modifier).getString(), HINT_COLOR));
+        } else if (state == SelectionState.WAITING_SECOND_CORNER && machine.draft() != null) {
+            SelectionDraft draft = machine.draft();
+            SelectionBounds b = draft.bounds();
+            lines.add(new Line(option == null ? Text.translatable("buildzones.hud.title").getString() : title(option),
+                    TITLE_COLOR));
+            lines.add(new Line(String.format(Locale.ROOT, "%d × %d × %d   %s %s",
+                    b.sizeX(), b.sizeY(), b.sizeZ(),
+                    formatVolume(b.volume()),
+                    Text.translatable("buildzones.hud.blocks").getString()), TEXT_COLOR));
+            lines.add(new Line(Text.translatable("buildzones.hud.panel_waiting", modifier).getString(), HINT_COLOR));
+        } else if (state == SelectionState.PREVIEW && machine.draft() != null) {
+            SelectionDraft draft = machine.draft();
+            SelectionBounds b = draft.bounds();
+            lines.add(new Line(Text.translatable("buildzones.hud.title").getString()
+                    + "  /  " + Text.translatable("buildzones.hud.preview_title").getString(), TITLE_COLOR));
+            lines.add(new Line(String.format(Locale.ROOT, "%d × %d × %d   %s %s",
+                    b.sizeX(), b.sizeY(), b.sizeZ(),
+                    formatVolume(b.volume()),
+                    Text.translatable("buildzones.hud.blocks").getString()), TEXT_COLOR));
+            lines.add(new Line(axisText(draft), AXIS_COLOR));
+            lines.add(new Line(Text.translatable("buildzones.hud.preview_help").getString(), HINT_COLOR));
+        } else if (area != null && area.isActive()) {
+            lines.add(new Line(Text.translatable("buildzones.hud.area_title", title(RadialOption.BUILD)).getString(),
+                    TITLE_COLOR));
+            if (area.target() == null) {
+                lines.add(new Line(Text.translatable("buildzones.hud.area_no_block").getString(), TEXT_COLOR));
+            } else {
+                lines.add(new Line(Text.translatable("buildzones.hud.area_block", area.target().getBlock().getName())
+                        .getString(), TEXT_COLOR));
+            }
+            lines.add(new Line(Text.translatable("buildzones.hud.area_help", modifier).getString(), HINT_COLOR));
+        }
+        return lines;
+    }
+
+    private static String axisText(SelectionDraft draft) {
         if (draft.activeAxis() == null) {
             return "";
         }
@@ -118,6 +156,10 @@ public final class SelectionHud {
             default -> Text.translatable("buildzones.hud.axis_horizontal").getString();
         };
         return Text.translatable("buildzones.hud.axis", axis).getString() + "  " + hint;
+    }
+
+    private static String title(RadialOption option) {
+        return Text.translatable(option.labelKey()).getString();
     }
 
     private void renderToasts(DrawContext context, TextRenderer font, MinecraftClient client) {
@@ -136,8 +178,5 @@ public final class SelectionHud {
 
     private static String formatVolume(long volume) {
         return String.format(Locale.ROOT, "%,d", volume).replace(',', '.');
-    }
-
-    private record Line(String text, int color) {
     }
 }

@@ -9,6 +9,9 @@ public final class AreaLimits {
     /** Tamanho máximo de uma dimensão de região, para evitar caixas gigantes por acidente. */
     public static final int MAX_DIMENSION = 512;
 
+    /** Quantas áreas o cliente envia ao servidor de uma vez (pincel e operações em massa). */
+    public static final int MAX_SYNC_REGIONS = 64;
+
     /** Volume máximo de uma operação em massa (64 × 64 × 64). */
     public static final long MAX_OP_VOLUME = 262_144L;
 
@@ -18,8 +21,11 @@ public final class AreaLimits {
     /** Células processadas por tick de servidor em uma operação em massa. */
     public static final int JOB_SLICE_CELLS = 4096;
 
-    /** Intervalo mínimo entre colocações de um mesmo jogador no servidor. Um pouco abaixo do cliente. */
-    public static final long PLACE_MIN_INTERVAL_MS = 80L;
+    /**
+     * Intervalo mínimo entre colocações ou quebras de um mesmo jogador no servidor. O cliente age uma vez
+     * por tick (50 ms); o piso fica abaixo disso para não descartar pedidos por jitter de rede.
+     */
+    public static final long PLACE_MIN_INTERVAL_MS = 30L;
 
     private AreaLimits() {
     }

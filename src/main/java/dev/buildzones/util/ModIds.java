@@ -10,6 +10,7 @@ public final class ModIds {
     public static final Identifier SYNC_REGION = id("sync_region");
     public static final Identifier AREA_OP_REQUEST = id("area_op_request");
     public static final Identifier AREA_PLACE_REQUEST = id("area_place_request");
+    public static final Identifier AREA_BREAK_REQUEST = id("area_break_request");
     public static final Identifier AREA_RESULT = id("area_result");
 
     private ModIds() {
