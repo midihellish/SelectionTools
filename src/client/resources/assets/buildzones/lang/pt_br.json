@@ -1,5 +1,5 @@
 {
-  "buildzones.hud.title": "BuildZones",
+  "buildzones.hud.title": "Selection Tools",
   "buildzones.hud.waiting_title": "Defina o segundo canto",
   "buildzones.hud.preview_title": "Prévia",
   "buildzones.hud.waiting_help": "ALT + clique esquerdo: marque o canto oposto",
@@ -21,7 +21,7 @@
   "buildzones.hud.cancelled": "Prévia cancelada.",
   "buildzones.hud.at_limit": "Limite atingido neste eixo.",
   "buildzones.hud.no_profile": "Não há perfil de mundo disponível para salvar.",
-  "buildzones.hud.no_server_support": "Este servidor não tem o BuildZones. Substituição e modo área indisponíveis.",
+  "buildzones.hud.no_server_support": "Este servidor não tem o Selection Tools. Substituição e modo área indisponíveis.",
   "buildzones.hud.replacement_sent": "Substituição enviada.",
 
   "buildzones.hud.area_on": "Modo área ligado. Alvo: %s. Botão direito coloca, ALT + B desliga.",

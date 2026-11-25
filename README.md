@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="BuildZones: desenhe o volume, construa dentro dele" width="100%">
+  <img src="docs/assets/banner.svg" alt="Selection Tools: desenhe o volume, construa dentro dele" width="100%">
 </p>
 
 <p align="center">
   <a href="https://github.com/midihellish/SelectionTools/releases/latest">
-    <img src="https://img.shields.io/badge/Baixar-buildzones--0.1.0.jar-e8466f?style=for-the-badge&labelColor=0e1016" alt="Baixar buildzones-0.1.0.jar">
+    <img src="https://img.shields.io/badge/Baixar-selection-tools--0.2.0.jar-e8466f?style=for-the-badge&labelColor=0e1016" alt="Baixar selection-tools-0.2.0.jar">
   </a>
 </p>
 
@@ -19,7 +19,7 @@
 
 ## Instalação
 
-1. Baixe o `buildzones-0.1.0.jar` na [página de releases](https://github.com/midihellish/SelectionTools/releases/latest).
+1. Baixe o `selection-tools-0.2.0.jar` na [página de releases](https://github.com/midihellish/SelectionTools/releases/latest).
 2. Coloque o arquivo na pasta `mods/` da sua instância Fabric.
 3. Use Fabric Loader `0.20.1` e Fabric API `0.92.12+1.20.1`, com Minecraft `1.20.1`.
 

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "buildzones",
   "version": "${version}",
-  "name": "BuildZones",
+  "name": "Selection Tools",
   "description": "Desenhe, ajuste e acompanhe volumes de construção no mundo, com substituição de blocos validada pelo servidor.",
   "authors": [],
   "license": "All-Rights-Reserved",

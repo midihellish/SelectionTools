@@ -19,7 +19,7 @@
 
 ## Build e carregamento
 
-- `./gradlew build` gera `build/libs/buildzones-0.1.0.jar` e o `-sources.jar`.
+- `./gradlew build` gera `build/libs/selection-tools-0.2.0.jar` e o `-sources.jar`.
 - Código comum sem referências a `net.minecraft.client` (checado com `javap` nas classes de `main`).
 - Alvos dos mixins conferidos contra o Minecraft 1.20.1: `Keyboard.onKey(JIIII)`, `Mouse.onMouseScroll(JDD)`.
 
@@ -68,7 +68,7 @@ Sobrevivência:
 - [ ] ALT + Z ou ALT + F na última região: o modo área acompanha a região nova ou desliga se não houver mais nenhuma.
 
 Sem o mod no servidor:
-- [ ] `ALT + B`, `ALT + C`, `ALT + V` e `CTRL + ALT + Z` avisam "Este servidor não tem o BuildZones" e não mudam nada.
+- [ ] `ALT + B`, `ALT + C`, `ALT + V` e `CTRL + ALT + Z` avisam "Este servidor não tem o Selection Tools" e não mudam nada.
 - [ ] Clique direito volta ao vanilla.
 
 Limites e dessincronia:
