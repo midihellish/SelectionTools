@@ -1,5 +1,5 @@
 {
-  "buildzones.hud.title": "BuildZones",
+  "buildzones.hud.title": "Selection Tools",
   "buildzones.hud.waiting_title": "Set the second corner",
   "buildzones.hud.preview_title": "Preview",
   "buildzones.hud.waiting_help": "ALT + Left click: mark the opposite corner",
@@ -21,7 +21,7 @@
   "buildzones.hud.cancelled": "Preview cancelled.",
   "buildzones.hud.at_limit": "Limit reached on this axis.",
   "buildzones.hud.no_profile": "No world profile available for saving.",
-  "buildzones.hud.no_server_support": "This server does not have BuildZones. Replacement and area mode unavailable.",
+  "buildzones.hud.no_server_support": "This server does not have Selection Tools. Replacement and area mode unavailable.",
   "buildzones.hud.replacement_sent": "Replacement sent.",
 
   "buildzones.hud.area_on": "Area mode on. Target: %s. RMB places, ALT + B turns it off.",

@@ -1,4 +1,4 @@
-# Controles do BuildZones
+# Controles do Selection Tools
 
 | Entrada | Quando | Efeito |
 |---|---|---|

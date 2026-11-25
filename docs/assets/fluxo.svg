@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1048" height="190" viewBox="0 0 1048 190" role="img" aria-labelledby="t">
+  <title id="t">Fluxo de uma seleção: canto A, canto B, scroll e confirmação</title>
+  <rect width="100%" height="100%" fill="#0e1016" rx="0"/>
+    <rect x="30" y="30" width="220" height="130" rx="16" fill="#181b24" stroke="#2e2c37" stroke-width="1.5"/>
+  <text x="52" y="64" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#f4a07a">01</text>
+  <rect x="52" y="80" width="176" height="26" rx="13" fill="#232733"/>
+  <text x="140.0" y="98" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#fbeee0">ALT + clique</text>
+  <text x="52" y="130" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="600" fill="#fbeee0">canto A</text>
+  <text x="52" y="150" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e">marca o primeiro bloco</text>
+  <line x1="256" y1="95.0" x2="280" y2="95.0" stroke="#6fd6c8" stroke-width="2"/>
+  <polygon points="280,95.0 272,90.0 272,100.0" fill="#6fd6c8"/>
+  <rect x="286" y="30" width="220" height="130" rx="16" fill="#181b24" stroke="#2e2c37" stroke-width="1.5"/>
+  <text x="308" y="64" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#f4a07a">02</text>
+  <rect x="308" y="80" width="176" height="26" rx="13" fill="#232733"/>
+  <text x="396.0" y="98" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#fbeee0">ALT + clique</text>
+  <text x="308" y="130" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="600" fill="#fbeee0">canto B</text>
+  <text x="308" y="150" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e">abre a prévia</text>
+  <line x1="512" y1="95.0" x2="536" y2="95.0" stroke="#6fd6c8" stroke-width="2"/>
+  <polygon points="536,95.0 528,90.0 528,100.0" fill="#6fd6c8"/>
+  <rect x="542" y="30" width="220" height="130" rx="16" fill="#181b24" stroke="#2e2c37" stroke-width="1.5"/>
+  <text x="564" y="64" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#f4a07a">03</text>
+  <rect x="564" y="80" width="176" height="26" rx="13" fill="#232733"/>
+  <text x="652.0" y="98" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#fbeee0">scroll</text>
+  <text x="564" y="130" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="600" fill="#fbeee0">ajusta</text>
+  <text x="564" y="150" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e">cresce no eixo da câmera</text>
+  <line x1="768" y1="95.0" x2="792" y2="95.0" stroke="#6fd6c8" stroke-width="2"/>
+  <polygon points="792,95.0 784,90.0 784,100.0" fill="#6fd6c8"/>
+  <rect x="798" y="30" width="220" height="130" rx="16" fill="#181b24" stroke="#e8466f" stroke-width="2"/>
+  <text x="820" y="64" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#f4a07a">04</text>
+  <rect x="820" y="80" width="176" height="26" rx="13" fill="#232733"/>
+  <text x="908.0" y="98" text-anchor="middle" font-family="'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace" font-size="13" fill="#fbeee0">botão direito</text>
+  <text x="820" y="130" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="600" fill="#fbeee0">confirma</text>
+  <text x="820" y="150" font-family="'Fira Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e">salva a região</text>
+</svg>
