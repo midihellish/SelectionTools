@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Banner e fluxo do README redesenhados, mais leves: grade isométrica, wireframe em gradiente e linha do tempo.
+
 ## 0.3.0
 
 - Menu radial, tipos de área (construir, oco, arestas, preencher), pincel e quebra pelo servidor, consolidados num único commit.

@@ -11,7 +11,7 @@ export JAVA_HOME=$HOME/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-- Build completo (compila os dois source sets, roda testes, gera `build/libs/selection-tools-0.3.0.jar` e o `-sources.jar`): `./gradlew build`
+- Build completo (compila os dois source sets, roda testes, gera `build/libs/selection-tools-0.4.0.jar` e o `-sources.jar`): `./gradlew build`
 - Compilar sem testes: `./gradlew compileJava compileClientJava`
 - Todos os testes: `./gradlew test`
 - Uma classe: `./gradlew test --tests 'dev.buildzones.client.radial.RadialLayoutTest'`
