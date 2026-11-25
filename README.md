@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/midihellish/SelectionTools/releases/latest"><img src="https://img.shields.io/badge/Baixar-v0.3.0-e8466f?style=for-the-badge&logo=github&logoColor=fbeee0&labelColor=0e1016" alt="Baixar v0.3.0"></a>
+  <a href="https://github.com/midihellish/SelectionTools/releases/latest"><img src="https://img.shields.io/badge/Baixar-%C3%9Altima_vers%C3%A3o-e8466f?style=for-the-badge&logo=github&logoColor=fbeee0&labelColor=0e1016" alt="Baixar a última versão"></a>
   <a href="docs/CONTROLS.md"><img src="https://img.shields.io/badge/Controles-ver_lista-6fd6c8?style=for-the-badge&labelColor=0e1016" alt="Controles"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Changelog-o_que_mudou-f4a07a?style=for-the-badge&labelColor=0e1016" alt="Changelog"></a>
 </p>
@@ -86,7 +86,7 @@ Cada região guarda o próprio tipo. Regiões se sobrepõem sem alterar as anter
 
 1. Instale o [Fabric Loader](https://fabricmc.net/use/) `0.20.1` no Minecraft `1.20.1`.
 2. Coloque o [Fabric API](https://modrinth.com/mod/fabric-api) `0.92.12+1.20.1` em `mods/`.
-3. Baixe o `selection-tools-0.3.0.jar` nos [releases](https://github.com/midihellish/SelectionTools/releases/latest) e coloque também em `mods/`.
+3. Baixe o `selection-tools-<versão>.jar` nos [releases](https://github.com/midihellish/SelectionTools/releases/latest) e coloque também em `mods/`.
 
 > O jar é só para Fabric. Não serve para NeoForge.
 
