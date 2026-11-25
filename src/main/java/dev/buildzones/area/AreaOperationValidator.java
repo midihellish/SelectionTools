@@ -96,6 +96,14 @@ public final class AreaOperationValidator {
         return Optional.empty();
     }
 
+    /**
+     * Quebra do pincel: as mesmas checagens da colocação, menos alvo e item na mão, que quebrar não exige.
+     */
+    public static Optional<AreaResult> checkBreak(PlaceFacts f) {
+        return checkPlacement(new PlaceFacts(f.rateOk(), f.regionKnown(), f.dimensionMatches(), f.insideRegion(),
+                true, true, f.allowedToBuild(), f.inBuildLimit(), f.chunkLoaded(), f.distanceSq(), f.reachSq()));
+    }
+
     /** Intervalo mínimo entre colocações, em milissegundos. Abaixo disso o pedido é descartado. */
     public static boolean placeRateOk(long lastPlaceMs, long nowMs) {
         return lastPlaceMs < 0 || nowMs - lastPlaceMs >= AreaLimits.PLACE_MIN_INTERVAL_MS;

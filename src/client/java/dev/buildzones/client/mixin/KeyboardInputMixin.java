@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Captura ALT+Z, ALT+F e ESC (com rascunho) antes do vanilla.
+ * Captura a tecla de modificador (toque abre o menu), os atalhos com modificador e o ESC com seleção.
  *
  * Alvo: {@code Keyboard.onKey(long, int, int, int, int)}. Um keybinding do jogo
  * (como F, troca de mão) é disparado dentro desse método; cancelar no HEAD impede
@@ -19,7 +19,7 @@ public abstract class KeyboardInputMixin {
 
     @Inject(method = "onKey", at = @At("HEAD"), cancellable = true)
     private void buildzones$onKey(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
-        if (KeyboardShortcutHandler.handle(action, key, modifiers)) {
+        if (KeyboardShortcutHandler.handle(action, key, scancode, modifiers)) {
             ci.cancel();
         }
     }

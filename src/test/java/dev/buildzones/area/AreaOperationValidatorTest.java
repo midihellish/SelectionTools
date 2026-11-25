@@ -123,6 +123,16 @@ class AreaOperationValidatorTest {
     }
 
     @Test
+    void breakNeedsNoTargetNorHeldItem() {
+        var facts = place(true, true, true, true, false, false, true, true, true, 4.0);
+        assertTrue(AreaOperationValidator.checkBreak(facts).isEmpty());
+        assertEquals(Optional.of(AreaResult.OUT_OF_REGION),
+                AreaOperationValidator.checkBreak(place(true, true, true, false, false, false, true, true, true, 4.0)));
+        assertEquals(Optional.of(AreaResult.OUT_OF_REACH),
+                AreaOperationValidator.checkBreak(place(true, true, true, true, false, false, true, true, true, 37.0)));
+    }
+
+    @Test
     void placeRateAllowsFirstAndRespectsInterval() {
         assertTrue(AreaOperationValidator.placeRateOk(-1L, 1000L));
         assertFalse(AreaOperationValidator.placeRateOk(1000L, 1000L + AreaLimits.PLACE_MIN_INTERVAL_MS - 1));

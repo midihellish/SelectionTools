@@ -1,10 +1,11 @@
 package dev.buildzones.client;
 
 import dev.buildzones.client.animation.AnimationController;
-import dev.buildzones.client.area.AreaModeController;
 import dev.buildzones.client.axis.AxisResolver;
 import dev.buildzones.client.config.BuildZonesConfig;
+import dev.buildzones.client.area.AreaModeController;
 import dev.buildzones.client.hud.SelectionHud;
+import dev.buildzones.client.input.ModKeys;
 import dev.buildzones.client.input.MouseInputHandler;
 import dev.buildzones.client.input.SelectionInputController;
 import dev.buildzones.client.rendering.AreaGhostRenderer;
@@ -38,6 +39,7 @@ public class BuildZonesClient implements ClientModInitializer {
         var root = FabricLoader.getInstance().getConfigDir().resolve("buildzones").resolve("worlds");
         SelectionStorage storage = new SelectionStorage(root);
         SelectionManager manager = new SelectionManager(storage);
+        ModKeys.register();
         SelectionStateMachine machine = new SelectionStateMachine(
                 manager, new AxisResolver(BuildZonesConfig.AXIS_HYSTERESIS));
         AnimationController animations = new AnimationController();
@@ -45,6 +47,7 @@ public class BuildZonesClient implements ClientModInitializer {
         AreaModeController area = new AreaModeController(manager, hud);
 
         controller = new SelectionInputController(machine, manager, animations, hud, area);
+        hud.bind(area, controller::pendingOption);
 
         new SelectionWorldRenderer(machine, manager, animations).register();
         new AreaGhostRenderer(area).register();

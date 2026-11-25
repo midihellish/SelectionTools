@@ -3,9 +3,9 @@ package dev.buildzones.client.rendering;
 import dev.buildzones.client.animation.AnimatedBounds;
 import dev.buildzones.client.animation.AnimationController;
 import dev.buildzones.client.config.BuildZonesConfig;
-import dev.buildzones.client.selection.SelectionAxis;
 import dev.buildzones.client.selection.SelectionDraft;
 import dev.buildzones.client.selection.SelectionManager;
+import dev.buildzones.client.selection.SelectionAxis;
 import dev.buildzones.client.selection.SelectionRegion;
 import dev.buildzones.client.selection.SelectionState;
 import dev.buildzones.client.selection.SelectionStateMachine;
@@ -23,7 +23,7 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 /**
- * Desenha regiões confirmadas, fantasmas de undo/clear e a prévia.
+ * Desenha regiões confirmadas, fantasmas de undo/clear e a seleção em andamento.
  * Só lê o estado; nunca altera dados de seleção.
  *
  * Ordem de desenho: primeiro todas as faces (uma camada), depois todas as arestas
@@ -39,8 +39,8 @@ public final class SelectionWorldRenderer {
     private final AnimatedBounds draftBounds = new AnimatedBounds();
     private long lastFrameMs = -1L;
 
-    /** Estado do rascunho para este frame, já com a animação avançada. */
-    private record DraftView(SelectionState state, Box box, Vec3d anchor, Vec3d opposite, int axisMask) {
+    /** Rascunho para este frame, já com a animação avançada. Nulo fora da seleção. */
+    private record DraftView(Box box, Vec3d anchor, Vec3d opposite, int axisMask) {
     }
 
     public SelectionWorldRenderer(SelectionStateMachine machine, SelectionManager manager,
@@ -92,33 +92,27 @@ public final class SelectionWorldRenderer {
         return visible;
     }
 
-    /** Avança a animação da caixa da prévia. Chamado uma vez por frame. */
+    /** Avança a animação da caixa da seleção. Chamado uma vez por frame. */
     private DraftView prepareDraft(double dt) {
-        SelectionState state = machine.state();
         SelectionDraft draft = machine.draft();
-        if (state == SelectionState.IDLE || draft == null) {
+        if (machine.state() == SelectionState.IDLE || draft == null) {
             draftBounds.reset();
             return null;
         }
         Vec3d anchor = Vec3d.ofCenter(draft.anchor());
-        if (state == SelectionState.WAITING_SECOND_CORNER) {
-            // Só o canto A aparece enquanto o segundo canto não foi marcado.
-            draftBounds.reset();
-            return new DraftView(state, null, anchor, null, 0);
-        }
-
-        // PREVIEW: a caixa nasce no canto A e cresce até o limite atual.
+        // A caixa nasce no canto A e segue a mira, convergindo em vez de pular.
         if (!draftBounds.seeded()) {
             draftBounds.seed(Box.of(anchor, 1.0e-3, 1.0e-3, 1.0e-3));
         }
         Box box = draftBounds.approach(draft.bounds().toBox(), dt);
+        // O eixo só aparece na prévia: antes do scroll, a câmera não escolhe eixo ainda.
         SelectionAxis axis = draft.activeAxis() == null ? SelectionAxis.Y : draft.activeAxis();
-        int axisMask = switch (axis) {
+        int axisMask = machine.state() != SelectionState.PREVIEW ? 0 : switch (axis) {
             case X -> SelectionGeometry.X_MASK;
             case Y -> SelectionGeometry.Y_MASK;
             case Z -> SelectionGeometry.Z_MASK;
         };
-        return new DraftView(state, box, anchor, Vec3d.ofCenter(draft.opposite()), axisMask);
+        return new DraftView(box, anchor, Vec3d.ofCenter(draft.opposite()), axisMask);
     }
 
     private void drawFaces(VertexConsumer faces, Matrix4f matrix, Vec3d cam, long now,
@@ -136,11 +130,6 @@ public final class SelectionWorldRenderer {
                     RenderStyle.argb(ghost.rgb(), alpha * RenderStyle.FILL_ALPHA / 255));
         }
         if (draft == null) {
-            return;
-        }
-        if (draft.state() == SelectionState.WAITING_SECOND_CORNER) {
-            SelectionGeometry.marker(faces, matrix, cam, draft.anchor(), RenderStyle.ANCHOR_MARKER_SIZE,
-                    RenderStyle.argb(RenderStyle.ANCHOR_RGB, 230));
             return;
         }
         SelectionGeometry.faces(faces, matrix, cam, draft.box(),
@@ -168,7 +157,7 @@ public final class SelectionWorldRenderer {
             SelectionGeometry.edges(lines, matrix, cam, ghost.box(),
                     RenderStyle.argb(ghost.rgb(), alpha), SelectionGeometry.ALL_AXES);
         }
-        if (draft == null || draft.state() != SelectionState.PREVIEW) {
+        if (draft == null) {
             return;
         }
         SelectionGeometry.edges(lines, matrix, cam, draft.box(),

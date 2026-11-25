@@ -21,5 +21,7 @@ public final class SelectionDocument {
         public String color;
         public boolean visible = true;
         public String name;
+        /** Nome do {@code AreaShape}. Ausente em arquivos antigos: vale Preencher. */
+        public String shape;
     }
 }

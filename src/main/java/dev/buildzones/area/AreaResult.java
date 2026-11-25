@@ -8,6 +8,7 @@ public enum AreaResult {
     QUEUED("buildzones.area.queued"),
     DONE("buildzones.area.done"),
     PLACED("buildzones.area.placed"),
+    BROKEN("buildzones.area.broken"),
     UNDO_EMPTY("buildzones.area.undo_empty"),
     NOT_CREATIVE("buildzones.area.not_creative"),
     BUSY("buildzones.area.busy"),
